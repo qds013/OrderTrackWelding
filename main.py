@@ -2,7 +2,8 @@ import logging
 import telebot
 from todoist_api_python.api import TodoistAPI
 
-from ___tgtoken import token
+from ___tgtoken import tgtoken
+from ___tdtoken import tdtoken
 
 # setting up logger
 logger = telebot.logger
@@ -12,7 +13,9 @@ telebot.logger.setLevel(logging.INFO)
 telebot.apihelper.SESSION_TIME_TO_LIVE = 5 * 60
 
 # creating telegram bot
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(tgtoken)
+# creating todoist connection
+todoist = TodoistAPI(tdtoken)
 
 # hadling 'start' command
 @bot.message_handler(commands = ['start'])
@@ -35,7 +38,7 @@ def bot_send_help(message):
 
     Пример номера заказа: ORDER123
 
-    !!! Сейчас работает тестовый режим: заказ должен быть ORDER123
+    !!! Тестовый режим: ORDER123 и ORDER456
 
     При возникновении проблем обратитесь к менеджеру.
     """
@@ -50,15 +53,33 @@ def bot_check_order(message):
 
     if not validate_order_number(order_number):
         logger.info(f"Некорректный номер заказа {order_number}")
-        bot.reply_to(message, "🔴 Некорректный формат номера заказа.")
+        bot.reply_to(message, "🔴 Некорректный номер заказа.")
         return
     
     try:
-        labels = ["Тестирование"]
-        logger.info(f"Заказ {order_number} статус {', ' . join(labels)}")
-        response = f"📦 Заказ №{order_number}\n"
-        response += f"📋 Статус: {', ' . join(labels)}\n"
-        bot.reply_to(message, response)    
+        # print("Gettings projects for token: " + tdtoken)
+        # projects = todoist.get_projects()
+        # print(projects)
+        # print("Gettings tasks for project: " + "2345348084")
+        tasks = todoist.get_tasks(project_id = "2345348084")
+        # print(tasks)
+
+        order_task = None
+        for task in tasks:
+            if order_number in task.content:
+                order_task = task
+                # print(order_task)
+                break
+        if order_task:
+            labels = order_task.labels
+            logger.info(f"Заказ {order_number} статус {', ' . join(labels)}")
+            response = f"📦 Заказ №{order_number}\n"
+            response += f"📋 Статус: {', ' . join(labels)}\n"
+            bot.reply_to(message, response)    
+        else:
+            logger.info(f"Заказ {order_number} не найден")
+            bot.reply_to(message, "Заказ не найден. Проверьте номер.")
+
     except Exception as e:
         logger.error(f"Ошибка при обработке заказа {order_number}: {str(e)}")
         response = f"🔴 Произошла ошибка при поиске заказа №{order_number} . Попробуйте позже.\n\n"
@@ -73,7 +94,8 @@ def echo(message):
 """
 
 def validate_order_number(order_number):
-    return(order_number == "ORDER123")
+    # return(order_number == "ORDER123")
+    return True
 
 # запуск бота
 if __name__ == "__main__":

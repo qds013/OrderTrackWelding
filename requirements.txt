@@ -1,0 +1,9 @@
+attrs==21.4.0
+certifi==2024.12.14
+charset-normalizer==3.4.0
+idna==3.10
+pyTelegramBotAPI==4.23.0
+requests==2.32.3
+telebot==0.0.5
+todoist-api-python==1.1.1
+urllib3==2.2.3

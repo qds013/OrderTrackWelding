@@ -66,7 +66,7 @@ def bot_check_order(message):
 
         order_task = None
         for task in tasks:
-            if order_number in task.content:
+            if order_number == task.content.upper():
                 order_task = task
                 # print(order_task)
                 break

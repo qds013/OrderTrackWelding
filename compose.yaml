@@ -13,6 +13,7 @@ services:
       context: .
 #    ports:
 #      - 8000:8000
+    restart: always
     develop:
       watch:
         - action: rebuild
